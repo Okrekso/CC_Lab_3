@@ -1,0 +1,46 @@
+   29  aws ec2 create-default-vpc
+   31  aws ec2 create-security-group --description '4 lab #3' --group-name 'lab3'
+   35  aws ec2 create-security-group --vpc-id vpc-0c26c15ad6346113d --group-name 'lab3' --description 'for lab 3'
+   36  aws ec2 authorize-security-group-ingress --group-id sg-0d22d40a6dc28d1a8 --protocol tcp --port 22 --cidr 8.0.0.0/16
+   37  aws ec2 authorize-security-group-ingress --group-id sg-0d22d40a6dc28d1a8 --protocol tcp --port 80 --cidr 8.0.0.0/16
+   38  aws ec2 authorize-security-group-ingress --group-id sg-0d22d40a6dc28d1a8 --protocol tcp --port 443 --cidr 8.0.0.0/16
+   70  aws ec2 create-tags --resources ami-0db98e57137013b2d --tags Key=Role,Value=WebServer
+   86  aws ec2 create-key-pair --key-name keypair-lab3 --query 'KeyMaterial' --output text > keypair.pem
+   90  aws ec2 run-instances --image-id ami-0db98e57137013b2d --instance-type t2.micro --subnet-id subnet-08232d48657f50286 --count 1 --key-name keypair-lab3
+  121  aws ec2 authorize-security-group-ingress --group-id sg-0d22d40a6dc28d1a8 --port 22 --protocol tcp --cidr 0.0.0.0/0
+  123  ssh -i 'keypair.pem' ec2-user@34.220.62.44
+  127  aws ec2 terminate-instances --instance-ids i-0eef8bc420d7f1ba3
+  132  aws ec2 delete-security-group --group-id sg-0d22d40a6dc28d1a8
+  134  aws ec2 create-security-group --vpc-id vpc-0c26c15ad6346113d --group-name 'lab3' --description 'for lab 3'
+  135  aws ec2 authorize-security-group-ingress --group-id sg-0d53248e536f99408 --protocol tcp --port 22 --cidr 0.0.0.0/0
+  139  aws ec2 run-instances --image-id ami-0db98e57137013b2d --instance-type t2.micro --subnet-id subnet-08232d48657f50286 --count 1 --key-name keypair-lab3 --security-group-ids sg-0d53248e536f99408
+  144  chmod 400 keypair.pem 
+  145  ssh -i keypair.pem ec2-user@34.220.0.29
+  147  aws ec2 terminate-instances --instance-ids i-0e54a8bba0248c986
+  156  aws ec2 create-key-pair --key-name lab3keypair --query 'KeyMaterial' --output text > lab3keypair.pem
+  158  chmod 400 lab3keypair.pem 
+  159  aws ec2 run-instances --image-id ami-0db98e57137013b2d --instance-type t2.micro --subnet-id subnet-08232d48657f50286 --count 1 --key-name lab3keypair --security-group-ids sg-0d53248e536f99408
+  164  ssh -i lab3keypair.pem ec2-user@54.188.210.41
+  171  aws ec2 reboot-instances --instance-ids i-0ddbda500e24fd486
+  184  aws ec2 authorize-security-group-ingress --group-name lab3 --port 80 --protocol tcp --cidr 0.0.0.0/0
+  186  aws ec2 authorize-security-group-ingress --group-name lab3 --port 443 --protocol tcp --cidr 0.0.0.0/0
+  187  ssh -i lab3keypair.pem ec2-user@54.188.210.41
+  188  vim runapache.sh
+  192  INSTANCE_ID=i-0ddbda500e24fd486
+  197  base64 runapache.sh > runapache.base64.sh 
+  201  aws ec2 stop-instances --instance-ids $INSTANCE_ID
+  202  aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID --attribute userData --value file://runapache.base64.sh
+  203  aws ec2 start-instances --instance-ids $INSTANCE_ID
+  206  aws ec2 create-image --instance-id $INSTANCE_ID --name Oskerko_Apache_Server
+  207  CUSTOM_IMAGE_ID=ami-018c04d38c8fc4bb9
+  211  run-instances --image-id $CUSTOM_IMAGE_ID --instance-type t2.micro --subnet-id subnet-08232d48657f50286 --count 1 --key-name lab3keypair --security-group-ids sg-0d53248e536f99408
+  212  aws ec2 run-instances --image-id $CUSTOM_IMAGE_ID --instance-type t2.micro --subnet-id subnet-08232d48657f50286 --count 1 --key-name lab3keypair --security-group-ids sg-0d53248e536f99408
+  214  ssh -i lab3keypair.pem ec2-user@54.188.210.41
+  216  ssh -i lab3keypair.pem ec2-user@35.166.152.78
+  218  aws ec2 run-instances --image-id $CUSTOM_IMAGE_ID --instance-type t2.micro --subnet-id subnet-08232d48657f50286 --count 1 --key-name lab3keypair --security-group-ids sg-0d53248e536f99408
+  219  curl http://ec2-34-221-100-134.us-west-2.compute.amazonaws.com/test/example.html
+<html>
+    <h1>Yo! It's Oskerko's lab #3! Yeah!</h1>
+</html>
+
+
